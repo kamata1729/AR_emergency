@@ -23,8 +23,8 @@
 		421DE88721BAE80100DD5516 /* ship.png in Resources */ = {isa = PBXBuildFile; fileRef = 421DE88621BAE80100DD5516 /* ship.png */; };
 		421DE88921BAE80A00DD5516 /* toilet.png in Resources */ = {isa = PBXBuildFile; fileRef = 421DE88821BAE80A00DD5516 /* toilet.png */; };
 		421DE88B21BAECBC00DD5516 /* art.scnassets in Resources */ = {isa = PBXBuildFile; fileRef = 421DE88A21BAECBC00DD5516 /* art.scnassets */; };
-		421DE88D21BB03E900DD5516 /* SecondViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 421DE88C21BB03E900DD5516 /* SecondViewController.swift */; };
-		421DE88F21C7848D00DD5516 /* SketchResModel.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 421DE87021B63A4500DD5516 /* SketchResModel.mlmodel */; };
+		421DE89021C795C800DD5516 /* SketchResModel.mlmodel in Sources */ = {isa = PBXBuildFile; fileRef = 421DE87021B63A4500DD5516 /* SketchResModel.mlmodel */; };
+		4224418921DE106300AEF856 /* camera_surface_2.png in Resources */ = {isa = PBXBuildFile; fileRef = 4224418821DE106300AEF856 /* camera_surface_2.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,7 +47,7 @@
 		421DE88621BAE80100DD5516 /* ship.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ship.png; sourceTree = "<group>"; };
 		421DE88821BAE80A00DD5516 /* toilet.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = toilet.png; sourceTree = "<group>"; };
 		421DE88A21BAECBC00DD5516 /* art.scnassets */ = {isa = PBXFileReference; lastKnownFileType = wrapper.scnassets; path = art.scnassets; sourceTree = "<group>"; };
-		421DE88C21BB03E900DD5516 /* SecondViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondViewController.swift; sourceTree = "<group>"; };
+		4224418821DE106300AEF856 /* camera_surface_2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = camera_surface_2.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -84,7 +84,6 @@
 				421DE86021B639C500DD5516 /* ViewController.swift */,
 				421DE87021B63A4500DD5516 /* SketchResModel.mlmodel */,
 				421DE86221B639C500DD5516 /* Main.storyboard */,
-				421DE88C21BB03E900DD5516 /* SecondViewController.swift */,
 				421DE86521B639D000DD5516 /* Assets.xcassets */,
 				421DE88A21BAECBC00DD5516 /* art.scnassets */,
 				421DE86721B639D000DD5516 /* LaunchScreen.storyboard */,
@@ -99,6 +98,7 @@
 				421DE88621BAE80100DD5516 /* ship.png */,
 				421DE88821BAE80A00DD5516 /* toilet.png */,
 				421DE88021BAE7D100DD5516 /* horse.png */,
+				4224418821DE106300AEF856 /* camera_surface_2.png */,
 			);
 			path = AR_emergency;
 			sourceTree = "<group>";
@@ -162,6 +162,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				421DE88121BAE7D200DD5516 /* horse.png in Resources */,
+				4224418921DE106300AEF856 /* camera_surface_2.png in Resources */,
 				421DE86921B639D000DD5516 /* LaunchScreen.storyboard in Resources */,
 				421DE88521BAE7F300DD5516 /* race_car.png in Resources */,
 				421DE88B21BAECBC00DD5516 /* art.scnassets in Resources */,
@@ -185,10 +186,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				421DE88D21BB03E900DD5516 /* SecondViewController.swift in Sources */,
 				421DE86121B639C500DD5516 /* ViewController.swift in Sources */,
 				421DE85F21B639C500DD5516 /* AppDelegate.swift in Sources */,
-				421DE88F21C7848D00DD5516 /* SketchResModel.mlmodel in Sources */,
+				421DE89021C795C800DD5516 /* SketchResModel.mlmodel in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
