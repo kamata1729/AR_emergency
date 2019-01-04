@@ -19,6 +19,8 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     @IBOutlet weak var sampleImageView: UIImageView!
     @IBOutlet weak var sampleLabel: UILabel!
     @IBOutlet weak var button: UIButton!
+    @IBOutlet weak var controllerView: UIView!
+    @IBOutlet weak var toggleView: UIView!
     
     @IBAction func tapButton(_ sender: Any) {
         let uiImage = sceneView.snapshot()
@@ -30,12 +32,16 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     }
     
     private let device = MTLCreateSystemDefaultDevice()!
-    private var fadingNode: SCNNode?
     
-    //モデル読み込み
     let skechModel = SketchResModel()
     let classDic: [Int : String] = [0: "butterfly", 1: "chair", 2: "dog", 3: "dragon", 4: "elephant", 5: "horse", 6: "pizza", 7: "race_car", 8: "ship", 9: "toilet"]
     public var classLabel: Int = -1 //表示するオブジェクトの番号
+    
+    private var isObjectOnPlane = false
+    
+    var cViewWidth :CGFloat = 0
+    var tViewWidth :CGFloat = 0
+    var cViewCenter :CGPoint = CGPoint(x: 0, y: 0)
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -52,6 +58,20 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         button.layer.masksToBounds = true
         button.tintColor = UIColor.black
         button.titleLabel?.text = "RECOGNITION"
+        
+        controllerView.layer.borderColor = UIColor.gray.cgColor
+        controllerView.layer.borderWidth = 20
+        controllerView.layer.cornerRadius = controllerView.bounds.width/2.0
+        controllerView.layer.masksToBounds = true
+        cViewWidth = controllerView.bounds.width
+        controllerView.isHidden = true
+        
+        tViewWidth = toggleView.bounds.width
+        toggleView.layer.cornerRadius = tViewWidth/2
+        toggleView.layer.masksToBounds = true
+        cViewCenter = CGPoint(x: cViewWidth/2, y: self.view.bounds.height - cViewWidth/2)
+        toggleView.center = cViewCenter
+        toggleView.isHidden = true
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -68,211 +88,124 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         configuration.maximumNumberOfTrackedImages = 1
         
         configuration.planeDetection = [.horizontal]
-
         
-        
-        sceneView.session.run(configuration)
         sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints]
+        sceneView.session.run(configuration)
+    }
 
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        // 1秒ごとに更新
-        //Timer.scheduledTimer(timeInterval: 1, target: self, selector: #selector(self.timerUpdate), userInfo: nil, repeats: true)
-    }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         sceneView.session.pause()
     }
     
-    
-    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
-        print("renderer")
-        DispatchQueue.main.async {
-            if let imageAnchor = anchor as? ARImageAnchor {
-                print("AA")
-                print(self.classLabel)
-                if self.classLabel != -2 {
-                    print("yeah!!!!")
-                    let plane = SCNPlane(width: imageAnchor.referenceImage.physicalSize.width, height: imageAnchor.referenceImage.physicalSize.height)
-                    plane.firstMaterial?.diffuse.contents = UIColor(white: 1.0, alpha: 0)
-                    
-                    let planeNode = SCNNode(geometry: plane)
-                    planeNode.eulerAngles.x = -.pi/2.0
-                    //planeNode.name = "planeNode"
-                    
-                    let shipScene = SCNScene(named: "art.scnassets/ship.scn")!
-                    let shipNode = shipScene.rootNode.childNodes.first!
-                    shipNode.name = "targetObject"
-                    
-                    planeNode.addChildNode(shipNode)
-                    node.addChildNode(planeNode)
-                }
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if isObjectOnPlane{
+            let touch = touches.first!
+            let location = touch.location(in: self.view)
+            let distance: CGFloat = sqrt(pow(location.x - cViewCenter.x, 2) + pow(location.y - cViewCenter.y, 2))
+            if distance < cViewWidth/2 {
+                toggleView.center = location
+            } else {
+                let px: CGFloat = (cViewWidth/(distance*2)) * location.x + ((distance - cViewWidth/2)/distance) * cViewCenter.x
+                let py: CGFloat = (cViewWidth/(distance*2)) * location.y + ((distance - cViewWidth/2)/distance) * cViewCenter.y
+                toggleView.center = CGPoint(x: px, y: py)
             }
-            
-            if let planeAnchor = anchor as? ARPlaneAnchor {
-                let planeGeometry = ARSCNPlaneGeometry(device: self.device)!
-                planeGeometry.update(from: planeAnchor.geometry)
-                
-                let color = UIColor.green
-                planeAnchor.addPlaneNode(on: node, geometry: planeGeometry, contents: color.withAlphaComponent(0.3))
-                /*
-                if #available(iOS 11.3, *) {
-                    let planeGeometry = ARSCNPlaneGeometry(device: self.device)!
-                    planeGeometry.update(from: planeAnchor.geometry)
-                    planeGeometry.firstMaterial?.diffuse.contents =  UIImage(named: "camera_surface_2.png")
-                    planeGeometry.firstMaterial?.diffuse.contentsTransform = SCNMatrix4MakeScale(2, 2, 0)
-                    planeGeometry.firstMaterial?.diffuse.wrapS = .repeat
-                    planeGeometry.firstMaterial?.diffuse.wrapT = .repeat
-                    let planeNode = SCNNode(geometry: planeGeometry)
-                    planeNode.castsShadow = false
-                    planeNode.position.y = planeNode.position.y + 0.001 // ちょっと浮かす
-                    planeNode.opacity = 0.0
-                    planeNode.renderingOrder = -2
-                    node.addChildNode(planeNode)
-                }
-                let extent = planeAnchor.extent
-                let plane = SCNPlane(width: CGFloat(extent.x), height: CGFloat(extent.z))
-                
-                let planeNode = SCNNode(geometry: plane)
-                planeNode.eulerAngles.x = -.pi/2
-                planeNode.renderingOrder = -1
-                
-                switch planeAnchor.alignment {
-                case .horizontal:
-                    planeNode.name = "horizontalPlane"
-                case .vertical:
-                    planeNode.name = "veriticalPlane"
-                }
-                node.addChildNode(planeNode)
- */
+            if let objNode = self.sceneView.scene.rootNode.childNode(withName: "objectNode", recursively: true) {
+                let theta = Float(atan2(toggleView.center.x - cViewCenter.x, cViewCenter.y - toggleView.center.y))
+                objNode.eulerAngles.y = -theta
+                print(objNode.eulerAngles.y)
+                objNode.position.z += Float(distance)*cos(theta)*5e-5
+                objNode.position.x -= Float(distance)*sin(theta)*5e-5
+                print(objNode.position)
             }
         }
     }
     
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        toggleView.center = cViewCenter
+    }
+   
+    
+    // didUpdate
     func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
-        if let planeAnchor = anchor as? ARPlaneAnchor{
-            if let planeGeometry = planeAnchor.findShapedPlaneNode(on: node)?.geometry as? ARSCNPlaneGeometry {
-                planeGeometry.update(from: planeAnchor.geometry)
-            }
-            
-            /*
-            let extent = planeAnchor.extent
-            
-            // アニメーション用のPlaneNode
-            if #available(iOS 11.3, *), let planeNode = findShapedPlaneNode(on: node),
-                let geometry = planeNode.geometry as? ARSCNPlaneGeometry {
-                geometry.update(from: planeAnchor.geometry)
-                fadeNode(node: planeNode)
-            }
-            
-            if let planeNode = node.childNode(withName: "horizontalPlane", recursively: false) {
-                let plane = SCNPlane(width: CGFloat(extent.x),
-                                     height: CGFloat(extent.z))
-                plane.firstMaterial?.colorBufferWriteMask = []
-                planeNode.geometry = plane
-                planeNode.castsShadow = false
-                
-                let center = planeAnchor.center
-                planeNode.position = SCNVector3Make(center.x, 0, center.z)
-            }
-            
-            if let vrticalPlaneNode = node.childNode(withName: "veriticalPlane", recursively: false) {
-                let plane = SCNPlane(width: CGFloat(extent.x),
-                                     height: CGFloat(extent.z))
-                plane.firstMaterial?.colorBufferWriteMask = []
-                vrticalPlaneNode.geometry = plane
-                vrticalPlaneNode.castsShadow = false
-                
-                let center = planeAnchor.center
-                vrticalPlaneNode.position = SCNVector3Make(center.x, center.y, center.z)
-            }
-            */
-        }
-    }
-    @available(iOS 11.3, *)
-    private func findShapedPlaneNode(on node: SCNNode) -> SCNNode? {
-        for childNode in node.childNodes {
-            if childNode.geometry as? ARSCNPlaneGeometry != nil {
-                return childNode
-            }
-        }
-        return nil
-    }
-    
-    private func fadeNode(node: SCNNode){
-        if node == fadingNode {
-            return
-        }
-        let fadeIn = SCNAction.fadeOpacity(to: 0.3, duration: 1)
-        let fadeOut = SCNAction.fadeOut(duration: 4)
-        let group = SCNAction.sequence([fadeIn, fadeOut])
-        node.runAction(group, completionHandler: {
-            node.removeFromParentNode()
-            self.fadingNode = nil
-        })
-        fadingNode = node
-    }
-    
-    /*
-    func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
-        
-        // DispatchQueue 内で処理をかく
         DispatchQueue.main.async {
-            
-            // ARPlaneAnchor からアンカーを取得したり平面のノードを調べる
-            if let planeAnchor = anchor as? ARPlaneAnchor {
-                // Metal のデフォルトデバイスを設定する
-                let device: MTLDevice = MTLCreateSystemDefaultDevice()!
-                // ARSCNPlaneGeometry でジオメトリを初期化
-                let plane = ARSCNPlaneGeometry.init(device: device)
-                // アンカーから認識した領域のジオメトリ情報を取得し ARSCNPlaneGeometry の update に処理を渡す
-                plane?.update(from: planeAnchor.geometry)
+            if self.classLabel != -1{
                 
-                // 60% 半透明の赤でマテリアルを着色
-                plane?.firstMaterial?.diffuse.contents = UIColor.init(red: 1.0, green: 0.0, blue: 0.0, alpha: 0.6)
+                // ARPlaneAnchor
+                if !self.isObjectOnPlane {
+                    if let planeAnchor = anchor as? ARPlaneAnchor{
+                        if let planeGeometry = planeAnchor.findShapedPlaneNode(on: node)?.geometry as? ARSCNPlaneGeometry {
+                            planeGeometry.update(from: planeAnchor.geometry)
+                        } else {
+                            let planeGeo = ARSCNPlaneGeometry(device: self.device)!
+                            planeGeo.update(from: planeAnchor.geometry)
+                            
+                            let color = UIColor.white
+                            planeAnchor.addPlaneNode(on: node, geometry: planeGeo, contents: color.withAlphaComponent(0.3))
+                        }
+                    }
+                }
                 
-                // 設置しているノードへ処理したジオメトリを渡し描画する
-                node.geometry = plane
+                // ARImageAnchor
+                if let imageAnchor = anchor as? ARImageAnchor {
+                    if let planeNode = self.sceneView.scene.rootNode.childNode(withName: "Plane", recursively: true) {
+                        if let objNode = self.sceneView.scene.rootNode.childNode(withName: "objectNode", recursively: true) {
+                            if planeNode.childNodes.count > 0{
+                                // 4. PlaneNodeにobjNodeが追加されているとき
+                                if !self.isObjectOnPlane {
+                                    // コントローラーを表示
+                                    self.controllerView.isHidden = false
+                                    self.toggleView.isHidden = false
+                                    print("add objNode")
+                                    print(objNode.worldPosition)
+                                    print(objNode.position)
+                                    self.isObjectOnPlane = true
+                                }
+                            } else {
+                                // 2. objNodeが存在している時
+                                print("objNode")
+                                print(objNode.worldPosition)
+                                print(objNode.position)
+                                print("PlaneNode")
+                                print(planeNode.worldPosition)
+                                print(planeNode.position)
+                                //let distance = sqrt(pow(objNode.worldPosition.x - planeNode.worldPosition.x, 2.0) + pow(objNode.worldPosition.y - planeNode.worldPosition.y, 2.0) + pow(objNode.worldPosition.z - planeNode.worldPosition.z, 2.0))
+                                let distance = sqrt(pow(objNode.worldPosition.y - planeNode.worldPosition.y, 2.0))
+                                print(distance)
+                                print(distance)
+                                // 3. 画像と平面が近くなったとき
+                                if distance < 0.1 {
+                                    objNode.removeFromParentNode()
+                                    objNode.eulerAngles = SCNVector3Zero
+                                    objNode.position = SCNVector3(x: 0, y: 0.05, z: 0)
+                                    //objNode.position = planeNode.convertPosition(SCNVector3(x: objNode.worldPosition.x - planeNode.worldPosition.x, y: objNode.worldPosition.y - planeNode.worldPosition.y, z: objNode.worldPosition.z - planeNode.worldPosition.z), to: nil)
+                                    
+                                    planeNode.addChildNode(objNode)
+                                }
+                            }
+                        } else {
+                            // 1. 最初に平面と画像を認識したとき
+                            print("detect image and plane")
+                            let dummyPlane = SCNPlane(width: imageAnchor.referenceImage.physicalSize.width, height: imageAnchor.referenceImage.physicalSize.height)
+                            dummyPlane.firstMaterial?.diffuse.contents = UIColor(white: 1.0, alpha: 0)
+                            
+                            let dummyPlaneNode = SCNNode(geometry: dummyPlane)
+                            dummyPlaneNode.eulerAngles.x = -.pi/2.0
+                            //planeNode.name = "planeNode"
+                            
+                            let shipScene = SCNScene(named: "art.scnassets/ship.scn")!
+                            let objectNode = shipScene.rootNode.childNodes.first!
+                            objectNode.eulerAngles.x = .pi/2
+                            objectNode.name = "objectNode"
+                            
+                            dummyPlaneNode.addChildNode(objectNode)
+                            node.addChildNode(dummyPlaneNode)
+                        }
+                    }
+                }
             }
-            
         }
-    }*/
-    /*
-    func renderer(_ renderer: SCNSceneRenderer, nodeFor anchor: ARAnchor) -> SCNNode? {
-        let node = SCNNode()
-        
-        print("renderer")
-        
-        if let imageAnchor = anchor as? ARImageAnchor{
-            if classLabel != -1 {
-                print("yeah!!!!")
-                let plane = SCNPlane(width: imageAnchor.referenceImage.physicalSize.width, height: imageAnchor.referenceImage.physicalSize.height)
-                plane.firstMaterial?.diffuse.contents = UIColor(white: 1.0, alpha: 0.5)
-                
-                let planeNode = SCNNode(geometry: plane)
-                planeNode.eulerAngles.x = -.pi/2.0
-                
-                let shipScene = SCNScene(named: "art.scnassets/ship.scn")!
-                let shipNode = shipScene.rootNode.childNodes.first!
-                
-                
-                planeNode.addChildNode(shipNode)
-                node.addChildNode(planeNode)
-                //sceneView.scene.rootNode.addChildNode(node)
-            }
-        }
-        return node
-    }
- */
-    
-    @objc func timerUpdate() {
-        //赤い枠の中の画像をcropしてそれをcoreMLRequestに渡す
-        let uiImage = sceneView.snapshot()
-        let cropedUIImage = uiImage.cropImage(w: Int(self.windowView.bounds.width*2), h: Int(self.windowView.bounds.height*2))
-        self.coreMLRequest(image: cropedUIImage)
     }
 
     
@@ -410,31 +343,5 @@ extension ARPlaneAnchor {
             }
         }
         return nil
-    }
-    
-    @available(iOS 11.3, *)
-    func updatePlaneGeometryNode(on node: SCNNode) {
-        DispatchQueue.main.async(execute: {
-            guard let planeGeometry = self.findPlaneGeometryNode(on: node)?.geometry as? ARSCNPlaneGeometry else { return }
-            planeGeometry.update(from: self.geometry)
-        })
-    }
-    
-    func updatePlaneNode(on node: SCNNode) {
-        DispatchQueue.main.async(execute: {
-            guard let plane = self.findPlaneNode(on: node)?.geometry as? SCNPlane else { return }
-            guard !PlaneSizeEqualToExtent(plane: plane, extent: self.extent) else { return }
-            
-            plane.width = CGFloat(self.extent.x)
-            plane.height = CGFloat(self.extent.z)
-        })
-    }
-}
-
-fileprivate func PlaneSizeEqualToExtent(plane: SCNPlane, extent: vector_float3) -> Bool {
-    if plane.width != CGFloat(extent.x) || plane.height != CGFloat(extent.z) {
-        return false
-    } else {
-        return true
     }
 }

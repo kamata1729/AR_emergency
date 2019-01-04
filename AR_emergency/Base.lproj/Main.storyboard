@@ -55,6 +55,22 @@
                                     <action selector="tapButton:" destination="BYZ-38-t0r" eventType="touchUpInside" id="ETJ-oF-DwS"/>
                                 </connections>
                             </button>
+                            <view alpha="0.5" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="3do-Nn-UFB">
+                                <rect key="frame" x="0.0" y="467" width="200" height="200"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="3do-Nn-UFB" secondAttribute="height" multiplier="1:1" id="0kH-AR-wOn"/>
+                                    <constraint firstAttribute="width" constant="200" id="XEa-qH-VoK"/>
+                                </constraints>
+                            </view>
+                            <view contentMode="scaleToFill" ambiguous="YES" translatesAutoresizingMaskIntoConstraints="NO" id="gEh-3s-mwv">
+                                <rect key="frame" x="242" y="502" width="70" height="70"/>
+                                <color key="backgroundColor" red="0.0078431372550000003" green="0.65098039220000004" blue="0.58431372550000005" alpha="1" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="70" id="CyH-kI-Yvv"/>
+                                    <constraint firstAttribute="height" constant="70" id="Mey-ZZ-i5P"/>
+                                </constraints>
+                            </view>
                         </subviews>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
@@ -63,6 +79,8 @@
                             <constraint firstItem="cMt-fC-XQX" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="82r-Sw-Bf8"/>
                             <constraint firstItem="JJ1-dn-Zi6" firstAttribute="leading" secondItem="cMt-fC-XQX" secondAttribute="trailing" id="85o-mZ-Tba"/>
                             <constraint firstItem="T2C-80-KxY" firstAttribute="trailing" secondItem="6Tk-OE-BBY" secondAttribute="trailing" id="GKM-kr-Muq"/>
+                            <constraint firstItem="3do-Nn-UFB" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="GXN-g0-CnY"/>
+                            <constraint firstAttribute="bottom" secondItem="3do-Nn-UFB" secondAttribute="bottom" id="Ifc-lb-ks1"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="77m-KL-dGZ" secondAttribute="trailing" constant="30" id="QUN-p8-yaX"/>
                             <constraint firstItem="bpg-tK-cv9" firstAttribute="centerY" secondItem="8bC-Xf-vdC" secondAttribute="centerY" id="X5y-aq-MHL"/>
                             <constraint firstItem="bpg-tK-cv9" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="YAc-C4-Bxw"/>
@@ -78,9 +96,11 @@
                     </view>
                     <connections>
                         <outlet property="button" destination="77m-KL-dGZ" id="mRY-NN-BMu"/>
+                        <outlet property="controllerView" destination="3do-Nn-UFB" id="sWj-Ce-Yoq"/>
                         <outlet property="sampleImageView" destination="cMt-fC-XQX" id="Yzq-iN-ClH"/>
                         <outlet property="sampleLabel" destination="JJ1-dn-Zi6" id="VJw-y6-Lbn"/>
                         <outlet property="sceneView" destination="T2C-80-KxY" id="IDK-6E-pOo"/>
+                        <outlet property="toggleView" destination="gEh-3s-mwv" id="lwv-Rx-QBw"/>
                         <outlet property="windowView" destination="bpg-tK-cv9" id="XNR-c3-w7I"/>
                     </connections>
                 </viewController>
