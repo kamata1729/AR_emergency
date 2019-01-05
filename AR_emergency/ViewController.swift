@@ -24,30 +24,28 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     @IBOutlet weak var toggleView: UIView!
     
     @IBAction func tapButton(_ sender: Any) {
-        let uiImage = sceneView.snapshot()
-        let cropedUIImage = uiImage.cropImage(w: Int(self.windowView.bounds.width*2), h: Int(self.windowView.bounds.height*2))
-        self.coreMLRequest(image: cropedUIImage)
-        
+        self.timer?.invalidate()
         self.button.isHidden = true
         self.windowView.isHidden = true
+        //self.sampleLabel.isHidden = true
         
         attitude()
     }
     
-    private let device = MTLCreateSystemDefaultDevice()!
     
+    private let device = MTLCreateSystemDefaultDevice()!
     let skechModel = SketchResModel()
+    var motionManager: CMMotionManager?
+    var timer: Timer?
+    
     let classDic: [Int : String] = [0: "butterfly", 1: "chair", 2: "dog", 3: "dragon", 4: "elephant", 5: "horse", 6: "pizza", 7: "race_car", 8: "ship", 9: "toilet"]
     public var classLabel: Int = -1 //表示するオブジェクトの番号
-    
-    private var isObjectOnPlane = false
-    
+    var pitch = 0.0
     var cViewWidth :CGFloat = 0
     var tViewWidth :CGFloat = 0
     var cViewCenter :CGPoint = CGPoint(x: 0, y: 0)
+    private var isObjectOnPlane = false
     
-    var motionManager: CMMotionManager?
-    var pitch = 0.0
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -125,6 +123,11 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         sceneView.session.pause()
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        self.timer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(self.timerUpdate), userInfo: nil, repeats: true)
+    }
+    
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         if isObjectOnPlane{
             let touch = touches.first!
@@ -163,6 +166,12 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         toggleView.center = cViewCenter
+    }
+    
+    @objc func timerUpdate() {
+        let uiImage = sceneView.snapshot()
+        let cropedUIImage = uiImage.cropImage(w: Int(self.windowView.bounds.width*2), h: Int(self.windowView.bounds.height*2))
+        self.coreMLRequest(image: cropedUIImage)
     }
     
     // didUpdate

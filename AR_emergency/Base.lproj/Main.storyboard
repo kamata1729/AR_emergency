@@ -35,18 +35,18 @@
                                     <constraint firstAttribute="height" constant="180" id="nKt-Zp-Aea"/>
                                 </constraints>
                             </imageView>
-                            <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="JJ1-dn-Zi6">
-                                <rect key="frame" x="180" y="597" width="195" height="70"/>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="JJ1-dn-Zi6">
+                                <rect key="frame" x="180" y="607" width="195" height="60"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <constraints>
-                                    <constraint firstAttribute="height" constant="70" id="VwS-D6-5PB"/>
+                                    <constraint firstAttribute="height" constant="60" id="VwS-D6-5PB"/>
                                 </constraints>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="77m-KL-dGZ">
-                                <rect key="frame" x="30" y="580" width="315" height="55"/>
+                                <rect key="frame" x="30" y="543" width="315" height="55"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="55" id="M2V-Fr-9k5"/>
                                 </constraints>
@@ -75,7 +75,7 @@
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <constraints>
                             <constraint firstItem="77m-KL-dGZ" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="3NV-It-k4X"/>
-                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="77m-KL-dGZ" secondAttribute="bottom" constant="32" id="3g1-1g-80e"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="77m-KL-dGZ" secondAttribute="bottom" constant="69" id="3g1-1g-80e"/>
                             <constraint firstItem="cMt-fC-XQX" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="82r-Sw-Bf8"/>
                             <constraint firstItem="JJ1-dn-Zi6" firstAttribute="leading" secondItem="cMt-fC-XQX" secondAttribute="trailing" id="85o-mZ-Tba"/>
                             <constraint firstItem="T2C-80-KxY" firstAttribute="trailing" secondItem="6Tk-OE-BBY" secondAttribute="trailing" id="GKM-kr-Muq"/>
