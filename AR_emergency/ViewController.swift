@@ -56,23 +56,6 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         motionManager?.deviceMotionUpdateInterval = 0.5
     }
     
-    func attitude() {
-        guard let _ = motionManager?.isDeviceMotionAvailable,
-            let operationQueue = OperationQueue.current
-            else {
-                return
-        }
-        
-        motionManager?.startDeviceMotionUpdates(to: operationQueue, withHandler: { motion, _ in
-            if let attitude = motion?.attitude {
-                self.pitch = attitude.pitch
-                //print(String(format: "%0.2f", attitude.pitch * 180.0 / Double.pi))
-                //self.rollLabel.text = String(format: "%0.2f", attitude.roll * 180.0 / Double.pi)
-                //self.yawLabel.text = String(format: "%0.2f", attitude.yaw * 180.0 / Double.pi)
-            }
-        })
-    }
-    
     override func viewDidLayoutSubviews() {
         windowView.layer.borderColor = UIColor.red.cgColor
         windowView.layer.borderWidth = 10
@@ -89,11 +72,12 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         controllerView.layer.masksToBounds = true
         cViewWidth = controllerView.bounds.width
         controllerView.isHidden = true
+        cViewCenter = CGPoint(x: cViewWidth/2, y: self.view.bounds.height - cViewWidth/2)
         
         tViewWidth = toggleView.bounds.width
         toggleView.layer.cornerRadius = tViewWidth/2
         toggleView.layer.masksToBounds = true
-        cViewCenter = CGPoint(x: cViewWidth/2, y: self.view.bounds.height - cViewWidth/2)
+        
         toggleView.center = cViewCenter
         toggleView.isHidden = true
     }
@@ -174,6 +158,20 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         self.coreMLRequest(image: cropedUIImage)
     }
     
+    // 姿勢(pitch)測定
+    func attitude() {
+        guard let _ = motionManager?.isDeviceMotionAvailable,
+            let operationQueue = OperationQueue.current
+            else {
+                return
+        }
+        motionManager?.startDeviceMotionUpdates(to: operationQueue, withHandler: { motion, _ in
+            if let attitude = motion?.attitude {
+                self.pitch = attitude.pitch
+            }
+        })
+    }
+    
     // didUpdate
     func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
         DispatchQueue.main.async {
@@ -226,6 +224,8 @@ class ViewController: UIViewController, ARSCNViewDelegate {
                                     objNode.removeFromParentNode()
                                     objNode.eulerAngles = SCNVector3Zero
                                     objNode.position = SCNVector3(x: 0, y: 0.05, z: 0)
+                                    //objNode.position = objNode.convertPosition(objNode.position, to: planeNode)
+                                    print(objNode.position)
                                     //objNode.position = planeNode.convertPosition(SCNVector3(x: objNode.worldPosition.x - planeNode.worldPosition.x, y: objNode.worldPosition.y - planeNode.worldPosition.y, z: objNode.worldPosition.z - planeNode.worldPosition.z), to: nil)
                                     
                                     planeNode.addChildNode(objNode)
@@ -239,7 +239,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
                             
                             let dummyPlaneNode = SCNNode(geometry: dummyPlane)
                             dummyPlaneNode.eulerAngles.x = -.pi/2.0
-                            //planeNode.name = "planeNode"
+                            dummyPlaneNode.name = "dummyPlaneNode"
                             
                             let shipScene = SCNScene(named: "art.scnassets/ship.scn")!
                             let objectNode = shipScene.rootNode.childNodes.first!
@@ -274,7 +274,9 @@ class ViewController: UIViewController, ARSCNViewDelegate {
             if let first = (prediction._126.sorted{ $0.value > $1.value }).first {
                 self.sampleLabel.text = "\(String(describing: classDic[Int(first.key)]!)) \n \(round(first.value*100)/100.0)"
                 self.classLabel = Int(first.key)
-                
+                /*
+                 予測結果からお対応するオブジェクトを配置する
+                 */
             }
         }
     }
