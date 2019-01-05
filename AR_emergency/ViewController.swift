@@ -11,6 +11,7 @@ import CoreML
 import SceneKit
 import ARKit
 import CoreImage
+import CoreMotion
 
 class ViewController: UIViewController, ARSCNViewDelegate {
     
@@ -29,6 +30,8 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         self.button.isHidden = true
         self.windowView.isHidden = true
+        
+        attitude()
     }
     
     private let device = MTLCreateSystemDefaultDevice()!
@@ -43,10 +46,33 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     var tViewWidth :CGFloat = 0
     var cViewCenter :CGPoint = CGPoint(x: 0, y: 0)
     
+    var motionManager: CMMotionManager?
+    var pitch = 0.0
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         sceneView.delegate = self
         sceneView.showsStatistics = true
+        
+        motionManager = CMMotionManager()
+        motionManager?.deviceMotionUpdateInterval = 0.5
+    }
+    
+    func attitude() {
+        guard let _ = motionManager?.isDeviceMotionAvailable,
+            let operationQueue = OperationQueue.current
+            else {
+                return
+        }
+        
+        motionManager?.startDeviceMotionUpdates(to: operationQueue, withHandler: { motion, _ in
+            if let attitude = motion?.attitude {
+                self.pitch = attitude.pitch
+                //print(String(format: "%0.2f", attitude.pitch * 180.0 / Double.pi))
+                //self.rollLabel.text = String(format: "%0.2f", attitude.roll * 180.0 / Double.pi)
+                //self.yawLabel.text = String(format: "%0.2f", attitude.yaw * 180.0 / Double.pi)
+            }
+        })
     }
     
     override func viewDidLayoutSubviews() {
@@ -89,7 +115,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         configuration.planeDetection = [.horizontal]
         
-        sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints]
+        sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints, ARSCNDebugOptions.showWorldOrigin]
         sceneView.session.run(configuration)
     }
 
@@ -112,12 +138,25 @@ class ViewController: UIViewController, ARSCNViewDelegate {
                 toggleView.center = CGPoint(x: px, y: py)
             }
             if let objNode = self.sceneView.scene.rootNode.childNode(withName: "objectNode", recursively: true) {
-                let theta = Float(atan2(toggleView.center.x - cViewCenter.x, cViewCenter.y - toggleView.center.y))
-                objNode.eulerAngles.y = -theta
-                print(objNode.eulerAngles.y)
-                objNode.position.z += Float(distance)*cos(theta)*5e-5
-                objNode.position.x -= Float(distance)*sin(theta)*5e-5
-                print(objNode.position)
+                // 画面上での速度ベクトル
+                let diff = SCNVector3(toggleView.center.x - cViewCenter.x, cViewCenter.y - toggleView.center.y, 0)
+                // 画面上の座標を回転させて水平にする
+                let rotateMat = SCNMatrix4MakeRotation(Float(-self.pitch), 1, 0, 0)
+                let x = rotateMat.m11*diff.x + rotateMat.m21*diff.y + rotateMat.m31*diff.z
+                let y = rotateMat.m12*diff.x + rotateMat.m22*diff.y + rotateMat.m32*diff.z
+                let z = rotateMat.m13*diff.x + rotateMat.m23*diff.y + rotateMat.m33*diff.z
+                let diffHorizontal = SCNVector3(x, y, z)
+                // カメラ座標系をワールド座標系に変換（平面の座標系の変換行列(3*3)はワールド座標系と同じ）
+                guard let cameraNode = sceneView.pointOfView else { return }
+                let diffWorld = cameraNode.convertVector(diffHorizontal, to: nil)
+                objNode.position.x += diffWorld.x*5e-5
+                objNode.position.z += diffWorld.z*5e-5
+                
+                // objNodeははじめz方向, thetaはz方向からの回転角
+                let theta = Float(atan2(diffWorld.x, diffWorld.z))
+                print(diffWorld)
+                print(theta * 180/Float.pi)
+                objNode.eulerAngles.y = theta
             }
         }
     }
@@ -125,7 +164,6 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
         toggleView.center = cViewCenter
     }
-   
     
     // didUpdate
     func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
