@@ -1,0 +1,152 @@
+# 
+# Wavefront material file
+# Converted by the DEEP Exploration  3.5.0.448
+# Right Hemisphere, LTD
+# http://www.righthemisphere.com/
+# 
+
+newmtl g_class_rubber
+Ka 0.0862745 0.0862745 0.0862745
+Kd 0.0862745 0.0862745 0.0862745
+Ks 0.62 0.62 0.62
+illum 2
+Ns 10.1657
+
+newmtl g_class_black
+Ka 0 0 0
+Kd 0 0 0
+Ks 0 0 0
+illum 2
+Ns 2048
+
+newmtl g_class_inside
+Ka 0 0 0
+Kd 0.784314 0.737255 0.690196
+Ks 0.34902 0.34902 0.34902
+illum 2
+Ns 9.18959
+
+newmtl g_class_glass_black
+Ka 0 0 0
+Kd 0.0938824 0.0938824 0.0938824
+Ks 1 1 1
+illum 2
+Ns 26.7596
+
+newmtl g_class_glass
+Ka 0 0 0
+Kd 0.0941804 0.0941804 0.0941804
+Ks 1 1 1
+illum 2
+Ns 26.7596
+d 0.4
+
+newmtl g_class_wheel_alu
+Ka 0.454902 0.466667 0.486275
+Kd 0.454902 0.466667 0.486275
+Ks 0.655 0.655 0.655
+illum 2
+Ns 362.039
+
+newmtl g_class__mirror
+Ka 0 0 0
+Kd 0 0 0
+Ks 1 1 1
+illum 2
+Ns 4.9209
+
+newmtl g_class_lights_red
+Ka 0 0 0
+Kd 0.945098 0.027451 0.027451
+Ks 0.5 0.5 0.5
+illum 2
+Ns 67.0691
+
+newmtl g_class_light_bulb
+Ka 0 0 0
+Kd 1 1 1
+Ks 0 0 0
+illum 2
+Ns 2048
+
+newmtl g_class_l0ight_mirror
+Ka 0 0 0
+Kd 0 0 0
+Ks 1 1 1
+illum 2
+Ns 43.5372
+
+newmtl g_class_light_frame
+Ka 0 0 0
+Kd 0.118235 0.118235 0.118235
+Ks 0.505 0.505 0.505
+illum 2
+Ns 67.0691
+
+newmtl g_class_light_red
+Ka 0.0588235 0.00784314 0
+Kd 0.0588235 0.00784314 0
+Ks 0.47 0.47 0.47
+illum 2
+Ns 3.70987
+d 0.701365
+
+newmtl g_class_lights_orange
+Ka 0 0 0
+Kd 0.933333 0.478431 0.0431373
+Ks 0 0 0
+illum 2
+Ns 2048
+
+newmtl g_class_lights_lens
+Ka 0 0 0
+Kd 0.0313726 0.0313726 0.0313726
+Ks 1 1 1
+illum 2
+Ns 67.0691
+d 0.04
+
+newmtl g_class_light_glasss
+Ka 0 0 0
+Kd 0.210196 0.218039 0.227451
+Ks 1 1 1
+illum 2
+Ns 43.5372
+d 0.4
+
+newmtl g_class_body
+Ka 0.384314 0.494118 0.294118
+Kd 0.384314 0.494118 0.294118
+Ks 0.725 0.725 0.725
+illum 2
+Ns 207.937
+
+newmtl g_class_wheel_inside
+Ka 0.439216 0.439216 0.439216
+Kd 0.439216 0.439216 0.439216
+Ks 0 0 0
+illum 2
+Ns 2048
+
+newmtl _50_wheel_brake
+Ka 0.368627 0.368627 0.368627
+Kd 0.368627 0.368627 0.368627
+Ks 0.65 0.65 0.65
+illum 2
+Ns 147.033
+
+newmtl g_class_wheel_rubber
+Ka 0 0 0
+Kd 0.0784314 0.0784314 0.0784314
+Ks 0.901961 0.941177 1
+illum 2
+Ns 4
+
+newmtl g_class_wheel_rubber_bmp
+Ka 0 0 0
+Kd 0.0784314 0.0784314 0.0784314
+Ks 0.901961 0.941177 1
+illum 2
+Ns 4
+map_bump tire.bmp
+bump tire.bmp
