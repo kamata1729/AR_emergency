@@ -27,10 +27,27 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         self.timer?.invalidate()
         self.button.isHidden = true
         self.windowView.isHidden = true
-        isRequestStopped = true
+        self.isRequestStopped = true
         //self.sampleLabel.isHidden = true
         
         attitude()
+        
+        self.controllerView.isHidden = false
+        self.toggleView.isHidden = false
+        self.sampleLabel.isHidden = true
+        self.isObjectOnPlane = true
+        
+        if let planeNode = self.sceneView.scene.rootNode.childNode(withName: "Plane", recursively: true) {
+            let name = "art.scnassets/\(String(describing: classDic[self.classLabel]!)).scn"
+            let ObjScene = SCNScene(named: name)!
+            let objNode = ObjScene.rootNode.childNodes.first!
+            
+            self.initialRotateMat(node: objNode, label: self.classLabel)
+            objNode.eulerAngles = SCNVector3Zero
+            objNode.position = SCNVector3(x: 0, y: 0.05, z: 0)
+            objNode.name = "objectNode"
+            planeNode.addChildNode(objNode)
+        }
     }
     
     
@@ -39,7 +56,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     var motionManager: CMMotionManager?
     var timer: Timer?
     
-    let classDic: [Int : String] = [0: "butterfly", 1: "chair", 2: "dog", 3: "dragon", 4: "elephant", 5: "horse", 6: "pizza", 7: "race_car", 8: "ship", 9: "toilet"]
+    let classDic: [Int : String] = [0: "butterfly", 1: "chair", 2: "dog", 3: "dragon", 4: "elephant", 5: "horse", 6: "pizza", 7: "car", 8: "ship", 9: "toilet"]
     public var classLabel: Int = -1 //表示するオブジェクトの番号
     var pitch = 0.0
     var cViewWidth :CGFloat = 0
@@ -47,6 +64,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     var cViewCenter :CGPoint = CGPoint(x: 0, y: 0)
     private var isObjectOnPlane = false
     var isRequestStopped = false
+    var isFirstUpdate = true
     
     
     override func viewDidLoad() {
@@ -56,6 +74,8 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         motionManager = CMMotionManager()
         motionManager?.deviceMotionUpdateInterval = 0.5
+        
+        
     }
     
     override func viewDidLayoutSubviews() {
@@ -73,7 +93,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         controllerView.layer.cornerRadius = controllerView.bounds.width/2.0
         controllerView.layer.masksToBounds = true
         cViewWidth = controllerView.bounds.width
-        controllerView.isHidden = true
+        
         cViewCenter = CGPoint(x: cViewWidth/2, y: self.view.bounds.height - cViewWidth/2)
         
         tViewWidth = toggleView.bounds.width
@@ -81,11 +101,18 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         toggleView.layer.masksToBounds = true
         
         toggleView.center = cViewCenter
-        toggleView.isHidden = true
+        
+        
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        controllerView.isHidden = true
+        toggleView.isHidden = true
+        windowView.isHidden = true
+        button.isHidden = true
+        
         let configuration = ARWorldTrackingConfiguration()
         //let configuration = ARImageTrackingConfiguration()
         
@@ -111,7 +138,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        self.timer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(self.timerUpdate), userInfo: nil, repeats: true)
+        //self.timer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(self.timerUpdate), userInfo: nil, repeats: true)
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -143,8 +170,6 @@ class ViewController: UIViewController, ARSCNViewDelegate {
                 
                 // objNodeははじめz方向, thetaはz方向からの回転角
                 let theta = Float(atan2(diffWorld.x, diffWorld.z))
-                print(diffWorld)
-                print(theta * 180/Float.pi)
                 objNode.eulerAngles.y = theta
             }
         }
@@ -155,6 +180,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     }
     
     @objc func timerUpdate() {
+        print("timerUpdate")
         let uiImage = sceneView.snapshot()
         let cropedUIImage = uiImage.cropImage(w: Int(self.windowView.bounds.width*2), h: Int(self.windowView.bounds.height*2))
         self.coreMLRequest(image: cropedUIImage)
@@ -173,7 +199,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
             }
         })
     }
-    
+    /*
     func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
         print("didAdd")
         if let imageAnchor = anchor as? ARImageAnchor {
@@ -194,28 +220,32 @@ class ViewController: UIViewController, ARSCNViewDelegate {
             node.addChildNode(dummyPlaneNode)
         }
     }
-    
+    */
     // didUpdate
     func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
         DispatchQueue.main.async {
-            if self.classLabel != -1{
-                
-                // ARPlaneAnchor
-                //if !self.isObjectOnPlane {
-                if let planeAnchor = anchor as? ARPlaneAnchor{
-                    if let planeGeometry = planeAnchor.findShapedPlaneNode(on: node)?.geometry as? ARSCNPlaneGeometry {
-                        planeGeometry.update(from: planeAnchor.geometry)
-                    } else {
-                        let planeGeo = ARSCNPlaneGeometry(device: self.device)!
-                        planeGeo.update(from: planeAnchor.geometry)
-                        
-                        let color = UIColor.white
-                        planeAnchor.addPlaneNode(on: node, geometry: planeGeo, contents: color.withAlphaComponent(0.3))
-                    }
+            
+            // ARPlaneAnchor
+            if let planeAnchor = anchor as? ARPlaneAnchor{
+                if self.isFirstUpdate {
+                    self.windowView.isHidden = false
+                    self.button.isHidden = false
+                    self.timer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(self.timerUpdate), userInfo: nil, repeats: true)
+                    self.isFirstUpdate = false
                 }
-                //}
+                if let planeGeometry = planeAnchor.findShapedPlaneNode(on: node)?.geometry as? ARSCNPlaneGeometry {
+                    planeGeometry.update(from: planeAnchor.geometry)
+                } else {
+                    let planeGeo = ARSCNPlaneGeometry(device: self.device)!
+                    planeGeo.update(from: planeAnchor.geometry)
+                    
+                    let color = UIColor.white
+                    planeAnchor.addPlaneNode(on: node, geometry: planeGeo, contents: color.withAlphaComponent(0.3))
+                    //planeAnchor.addPlaneNode(on: node, geometry: planeGeo, contents: color)
+                }
+            }
                 
-                // ARImageAnchor
+                /*
                 
                 if let planeNode = self.sceneView.scene.rootNode.childNode(withName: "Plane", recursively: true) {
                     if let objNode = self.sceneView.scene.rootNode.childNode(withName: "objectNode", recursively: true) {
@@ -245,10 +275,11 @@ class ViewController: UIViewController, ARSCNViewDelegate {
                             }
                         }
                     }
-                }
-            }
+ }
+            }*/
         }
     }
+ 
     
     func initialRotateMat(node: SCNNode, label: Int) {
         let mat = SCNMatrix4Identity
@@ -335,9 +366,6 @@ class ViewController: UIViewController, ARSCNViewDelegate {
             if let first = (prediction._126.sorted{ $0.value > $1.value }).first {
                 self.sampleLabel.text = "\(String(describing: classDic[Int(first.key)]!)) \n \(round(first.value*100)/100.0)"
                 self.classLabel = Int(first.key)
-                /*
-                 予測結果からお対応するオブジェクトを配置する
-                 */
             }
         }
     }
