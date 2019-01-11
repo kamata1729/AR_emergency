@@ -27,8 +27,6 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         self.timer?.invalidate()
         self.button.isHidden = true
         self.windowView.isHidden = true
-        self.isRequestStopped = true
-        //self.sampleLabel.isHidden = true
         
         attitude()
         
@@ -63,7 +61,6 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     var tViewWidth :CGFloat = 0
     var cViewCenter :CGPoint = CGPoint(x: 0, y: 0)
     private var isObjectOnPlane = false
-    var isRequestStopped = false
     var isFirstUpdate = true
     
     
@@ -82,10 +79,8 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         windowView.layer.borderColor = UIColor.red.cgColor
         windowView.layer.borderWidth = 10
         sampleLabel.numberOfLines = 0
-        //button.backgroundColor = UIColor.gray
         button.layer.cornerRadius = 20.0
         button.layer.masksToBounds = true
-        //button.tintColor = UIColor.black
         button.titleLabel?.text = "決定"
         
         controllerView.layer.borderColor = UIColor.gray.cgColor
@@ -112,6 +107,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         toggleView.isHidden = true
         windowView.isHidden = true
         button.isHidden = true
+        sampleLabel.isHidden = true
         
         let configuration = ARWorldTrackingConfiguration()
         //let configuration = ARImageTrackingConfiguration()
@@ -179,8 +175,40 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         toggleView.center = cViewCenter
     }
     
+    override var canBecomeFirstResponder: Bool { get { return true } }
+
+    override func motionBegan(_ motion: UIEvent.EventSubtype, with event: UIEvent?) {
+        if event?.type == UIEvent.EventType.motion && event?.subtype == UIEvent.EventSubtype.motionShake {
+            let alert: UIAlertController = UIAlertController(title: "alert", message: "最初からやり直す", preferredStyle:  UIAlertController.Style.alert)
+            let defaultAction: UIAlertAction = UIAlertAction(title: "OK", style: UIAlertAction.Style.default, handler:{
+                (action: UIAlertAction!) -> Void in
+                if let objNode = self.sceneView.scene.rootNode.childNode(withName: "objectNode", recursively: true) {
+                    objNode.removeFromParentNode()
+                }
+                //self.sceneView.scene.rootNode.enumerateChildNodes { (node, stop) in
+                //    node.removeFromParentNode()
+                //}
+                self.isObjectOnPlane = false
+                self.controllerView.isHidden = true
+                self.toggleView.isHidden = true
+                
+                self.windowView.isHidden = false
+                self.button.isHidden = false
+                self.sampleLabel.isHidden = false
+                self.timer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(self.timerUpdate), userInfo: nil, repeats: true)
+            })
+            let cancelAction: UIAlertAction = UIAlertAction(title: "キャンセル", style: UIAlertAction.Style.cancel, handler: nil)
+            alert.addAction(cancelAction)
+            alert.addAction(defaultAction)
+            
+            present(alert, animated: true, completion: nil)
+
+        }
+    }
+    
+    
+    
     @objc func timerUpdate() {
-        print("timerUpdate")
         let uiImage = sceneView.snapshot()
         let cropedUIImage = uiImage.cropImage(w: Int(self.windowView.bounds.width*2), h: Int(self.windowView.bounds.height*2))
         self.coreMLRequest(image: cropedUIImage)
@@ -230,6 +258,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
                 if self.isFirstUpdate {
                     self.windowView.isHidden = false
                     self.button.isHidden = false
+                    self.sampleLabel.isHidden = false
                     self.timer = Timer.scheduledTimer(timeInterval: 0.5, target: self, selector: #selector(self.timerUpdate), userInfo: nil, repeats: true)
                     self.isFirstUpdate = false
                 }
@@ -241,7 +270,6 @@ class ViewController: UIViewController, ARSCNViewDelegate {
                     
                     let color = UIColor.white
                     planeAnchor.addPlaneNode(on: node, geometry: planeGeo, contents: color.withAlphaComponent(0.3))
-                    //planeAnchor.addPlaneNode(on: node, geometry: planeGeo, contents: color)
                 }
             }
                 
