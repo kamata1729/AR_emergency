@@ -184,9 +184,9 @@ class ViewController: UIViewController, ARSCNViewDelegate {
             dummyPlaneNode.eulerAngles.x = -.pi/2.0
             dummyPlaneNode.name = "dummyPlaneNode"
             
-            let ObjScene = SCNScene(named: "art.scnassets/ship.scn")!
+            let ObjScene = SCNScene(named: "art.scnassets/dragon.scn")!
             let objectNode = ObjScene.rootNode.childNodes.first!
-            self.initialRotateMat(node: objectNode, label: 8)
+            self.initialRotateMat(node: objectNode, label: 3)
             objectNode.eulerAngles.x = .pi/2
             objectNode.name = "objectNode"
             
@@ -237,7 +237,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
                             if distance < 0.1 {
                                 // 3. 画像と平面が近くなったとき
                                 objNode.removeFromParentNode()
-                                self.initialRotateMat(node: objNode, label: 8)
+                                self.initialRotateMat(node: objNode, label: 5)
                                 objNode.eulerAngles = SCNVector3Zero
                                 objNode.position = SCNVector3(x: 0, y: 0.05, z: 0)
                                 
@@ -272,19 +272,17 @@ class ViewController: UIViewController, ARSCNViewDelegate {
             let scale: Float = 0.0020
             node.scale = SCNVector3(x: scale, y: scale, z: scale)
         case 3: //dragon
-            let scale: Float = 0.007
+            let scale: Float = 0.07
             node.scale = SCNVector3(x: scale, y: scale, z: scale)
         case 4: //elephant
-            let mult1 = SCNMatrix4MakeTranslation(0, -74, 0)
-            let mult2 = SCNMatrix4Rotate(mat, -.pi/3.8, 0, 1, 0)
-            let mult = SCNMatrix4Mult(mult1, mult2)
+            let mult = SCNMatrix4Rotate(mat, -.pi/2, 0, 1, 0)
             node.pivot = mult
-            let scale: Float = 0.001
+            let scale: Float = 0.018
             node.scale = SCNVector3(x: scale, y: scale, z: scale)
         case 5: //horse
             let mult = SCNMatrix4Rotate(mat, .pi/2, 1, 0, 0)
             node.pivot = mult
-            node.scale = SCNVector3(x: 0.00001, y: 0.00001, z: 0.00001)
+            node.scale = SCNVector3(x: 0.00005, y: 0.00005, z: 0.00005)
         case 6: //pizza
             let mult = SCNMatrix4Rotate(mat, .pi/2, 1, 0, 0)
             node.pivot = mult
@@ -297,7 +295,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
             let mult4 = SCNMatrix4Mult(mult2, mult1)
             let mult = SCNMatrix4Mult(mult3, mult4)
             node.pivot = mult
-            let scale: Float = 0.0002
+            let scale: Float = 0.0006
             node.scale = SCNVector3(x: scale, y: scale, z: scale)
         case 8: //ship
             let mult1 = SCNMatrix4Rotate(mat, .pi/2, 1, 0, 0)
@@ -311,7 +309,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
             let mult2 = SCNMatrix4MakeTranslation(0, -20, 0)
             let mult = SCNMatrix4Mult(mult2, mult1)
             node.pivot = mult
-            let scale: Float = 0.0007
+            let scale: Float = 0.0035
             node.scale = SCNVector3(x: scale, y: scale, z: scale)
         default:
             return
