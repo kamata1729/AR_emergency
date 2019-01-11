@@ -27,6 +27,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         self.timer?.invalidate()
         self.button.isHidden = true
         self.windowView.isHidden = true
+        isRequestStopped = true
         //self.sampleLabel.isHidden = true
         
         attitude()
@@ -45,6 +46,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
     var tViewWidth :CGFloat = 0
     var cViewCenter :CGPoint = CGPoint(x: 0, y: 0)
     private var isObjectOnPlane = false
+    var isRequestStopped = false
     
     
     override func viewDidLoad() {
@@ -60,11 +62,11 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         windowView.layer.borderColor = UIColor.red.cgColor
         windowView.layer.borderWidth = 10
         sampleLabel.numberOfLines = 0
-        button.backgroundColor = UIColor.gray
+        //button.backgroundColor = UIColor.gray
         button.layer.cornerRadius = 20.0
         button.layer.masksToBounds = true
-        button.tintColor = UIColor.black
-        button.titleLabel?.text = "RECOGNITION"
+        //button.tintColor = UIColor.black
+        button.titleLabel?.text = "決定"
         
         controllerView.layer.borderColor = UIColor.gray.cgColor
         controllerView.layer.borderWidth = 20
@@ -97,7 +99,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         configuration.planeDetection = [.horizontal]
         
-        sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints, ARSCNDebugOptions.showWorldOrigin]
+        //sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints, ARSCNDebugOptions.showWorldOrigin]
         sceneView.session.run(configuration)
     }
 
@@ -172,86 +174,147 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         })
     }
     
+    func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
+        print("didAdd")
+        if let imageAnchor = anchor as? ARImageAnchor {
+            let dummyPlane = SCNPlane(width: imageAnchor.referenceImage.physicalSize.width, height: imageAnchor.referenceImage.physicalSize.height)
+            dummyPlane.firstMaterial?.diffuse.contents = UIColor(white: 1.0, alpha: 0)
+            
+            let dummyPlaneNode = SCNNode(geometry: dummyPlane)
+            dummyPlaneNode.eulerAngles.x = -.pi/2.0
+            dummyPlaneNode.name = "dummyPlaneNode"
+            
+            let ObjScene = SCNScene(named: "art.scnassets/ship.scn")!
+            let objectNode = ObjScene.rootNode.childNodes.first!
+            self.initialRotateMat(node: objectNode, label: 8)
+            objectNode.eulerAngles.x = .pi/2
+            objectNode.name = "objectNode"
+            
+            dummyPlaneNode.addChildNode(objectNode)
+            node.addChildNode(dummyPlaneNode)
+        }
+    }
+    
     // didUpdate
     func renderer(_ renderer: SCNSceneRenderer, didUpdate node: SCNNode, for anchor: ARAnchor) {
         DispatchQueue.main.async {
             if self.classLabel != -1{
                 
                 // ARPlaneAnchor
-                if !self.isObjectOnPlane {
-                    if let planeAnchor = anchor as? ARPlaneAnchor{
-                        if let planeGeometry = planeAnchor.findShapedPlaneNode(on: node)?.geometry as? ARSCNPlaneGeometry {
-                            planeGeometry.update(from: planeAnchor.geometry)
-                        } else {
-                            let planeGeo = ARSCNPlaneGeometry(device: self.device)!
-                            planeGeo.update(from: planeAnchor.geometry)
-                            
-                            let color = UIColor.white
-                            planeAnchor.addPlaneNode(on: node, geometry: planeGeo, contents: color.withAlphaComponent(0.3))
-                        }
+                //if !self.isObjectOnPlane {
+                if let planeAnchor = anchor as? ARPlaneAnchor{
+                    if let planeGeometry = planeAnchor.findShapedPlaneNode(on: node)?.geometry as? ARSCNPlaneGeometry {
+                        planeGeometry.update(from: planeAnchor.geometry)
+                    } else {
+                        let planeGeo = ARSCNPlaneGeometry(device: self.device)!
+                        planeGeo.update(from: planeAnchor.geometry)
+                        
+                        let color = UIColor.white
+                        planeAnchor.addPlaneNode(on: node, geometry: planeGeo, contents: color.withAlphaComponent(0.3))
                     }
                 }
+                //}
                 
                 // ARImageAnchor
-                if let imageAnchor = anchor as? ARImageAnchor {
-                    if let planeNode = self.sceneView.scene.rootNode.childNode(withName: "Plane", recursively: true) {
-                        if let objNode = self.sceneView.scene.rootNode.childNode(withName: "objectNode", recursively: true) {
-                            if planeNode.childNodes.count > 0{
-                                // 4. PlaneNodeにobjNodeが追加されているとき
-                                if !self.isObjectOnPlane {
-                                    // コントローラーを表示
-                                    self.controllerView.isHidden = false
-                                    self.toggleView.isHidden = false
-                                    print("add objNode")
-                                    print(objNode.worldPosition)
-                                    print(objNode.position)
-                                    self.isObjectOnPlane = true
-                                }
-                            } else {
-                                // 2. objNodeが存在している時
-                                print("objNode")
-                                print(objNode.worldPosition)
-                                print(objNode.position)
-                                print("PlaneNode")
-                                print(planeNode.worldPosition)
-                                print(planeNode.position)
-                                //let distance = sqrt(pow(objNode.worldPosition.x - planeNode.worldPosition.x, 2.0) + pow(objNode.worldPosition.y - planeNode.worldPosition.y, 2.0) + pow(objNode.worldPosition.z - planeNode.worldPosition.z, 2.0))
-                                let distance = sqrt(pow(objNode.worldPosition.y - planeNode.worldPosition.y, 2.0))
-                                print(distance)
-                                print(distance)
-                                // 3. 画像と平面が近くなったとき
-                                if distance < 0.1 {
-                                    objNode.removeFromParentNode()
-                                    objNode.eulerAngles = SCNVector3Zero
-                                    objNode.position = SCNVector3(x: 0, y: 0.05, z: 0)
-                                    //objNode.position = objNode.convertPosition(objNode.position, to: planeNode)
-                                    print(objNode.position)
-                                    //objNode.position = planeNode.convertPosition(SCNVector3(x: objNode.worldPosition.x - planeNode.worldPosition.x, y: objNode.worldPosition.y - planeNode.worldPosition.y, z: objNode.worldPosition.z - planeNode.worldPosition.z), to: nil)
-                                    
-                                    planeNode.addChildNode(objNode)
-                                }
+                
+                if let planeNode = self.sceneView.scene.rootNode.childNode(withName: "Plane", recursively: true) {
+                    if let objNode = self.sceneView.scene.rootNode.childNode(withName: "objectNode", recursively: true) {
+                        // planeとobjectがどちらも存在しているとき
+                        
+                        if planeNode.childNodes.count > 0{
+                            // 4. PlaneNodeにobjNodeが追加されているときの最初
+                            if !self.isObjectOnPlane {
+                                // コントローラーを表示
+                                self.controllerView.isHidden = false
+                                self.toggleView.isHidden = false
+                                self.isObjectOnPlane = true
                             }
                         } else {
-                            // 1. 最初に平面と画像を認識したとき
-                            print("detect image and plane")
-                            let dummyPlane = SCNPlane(width: imageAnchor.referenceImage.physicalSize.width, height: imageAnchor.referenceImage.physicalSize.height)
-                            dummyPlane.firstMaterial?.diffuse.contents = UIColor(white: 1.0, alpha: 0)
+                            // 2. objNodeが存在している時
                             
-                            let dummyPlaneNode = SCNNode(geometry: dummyPlane)
-                            dummyPlaneNode.eulerAngles.x = -.pi/2.0
-                            dummyPlaneNode.name = "dummyPlaneNode"
+                            let distance = sqrt(pow(objNode.worldPosition.y - planeNode.worldPosition.y, 2.0))
                             
-                            let shipScene = SCNScene(named: "art.scnassets/ship.scn")!
-                            let objectNode = shipScene.rootNode.childNodes.first!
-                            objectNode.eulerAngles.x = .pi/2
-                            objectNode.name = "objectNode"
-                            
-                            dummyPlaneNode.addChildNode(objectNode)
-                            node.addChildNode(dummyPlaneNode)
+                            if distance < 0.1 {
+                                // 3. 画像と平面が近くなったとき
+                                objNode.removeFromParentNode()
+                                self.initialRotateMat(node: objNode, label: 8)
+                                objNode.eulerAngles = SCNVector3Zero
+                                objNode.position = SCNVector3(x: 0, y: 0.05, z: 0)
+                                
+                                planeNode.addChildNode(objNode)
+                            }
                         }
                     }
                 }
             }
+        }
+    }
+    
+    func initialRotateMat(node: SCNNode, label: Int) {
+        let mat = SCNMatrix4Identity
+        /*
+         [0: "butterfly", 1: "chair", 2: "dog", 3: "dragon", 4: "elephant", 5: "horse", 6: "pizza", 7: "race_car", 8: "ship", 9: "toilet"]
+         */
+        
+        switch label {
+        case 0: //butterfly
+            let mult = SCNMatrix4Rotate(mat, .pi/2, 0, 1, 0)
+            node.pivot = mult
+            node.scale = SCNVector3(x: 0.001, y: 0.001, z: 0.001)
+        case 1: //chair
+            let mult = SCNMatrix4Rotate(mat, .pi/2, 1, 0, 0)
+            node.pivot = mult
+            let scale: Float = 0.0008
+            node.scale = SCNVector3(x: scale, y: scale, z: scale)
+        case 2: //dog
+            let mult = SCNMatrix4Rotate(mat, .pi/2, 1, 0, 0)
+            node.pivot = mult
+            let scale: Float = 0.0020
+            node.scale = SCNVector3(x: scale, y: scale, z: scale)
+        case 3: //dragon
+            let scale: Float = 0.007
+            node.scale = SCNVector3(x: scale, y: scale, z: scale)
+        case 4: //elephant
+            let mult1 = SCNMatrix4MakeTranslation(0, -74, 0)
+            let mult2 = SCNMatrix4Rotate(mat, -.pi/3.8, 0, 1, 0)
+            let mult = SCNMatrix4Mult(mult1, mult2)
+            node.pivot = mult
+            let scale: Float = 0.001
+            node.scale = SCNVector3(x: scale, y: scale, z: scale)
+        case 5: //horse
+            let mult = SCNMatrix4Rotate(mat, .pi/2, 1, 0, 0)
+            node.pivot = mult
+            node.scale = SCNVector3(x: 0.00001, y: 0.00001, z: 0.00001)
+        case 6: //pizza
+            let mult = SCNMatrix4Rotate(mat, .pi/2, 1, 0, 0)
+            node.pivot = mult
+            let scale: Float = 0.005
+            node.scale = SCNVector3(x: scale, y: scale, z: scale)
+        case 7: //car
+            let mult1 = SCNMatrix4Rotate(mat, .pi/2, 1, 0, 0)
+            let mult2 = SCNMatrix4Rotate(mat, -.pi/2, 0, 1, 0)
+            let mult3 = SCNMatrix4MakeTranslation(0, -35, 0)
+            let mult4 = SCNMatrix4Mult(mult2, mult1)
+            let mult = SCNMatrix4Mult(mult3, mult4)
+            node.pivot = mult
+            let scale: Float = 0.0002
+            node.scale = SCNVector3(x: scale, y: scale, z: scale)
+        case 8: //ship
+            let mult1 = SCNMatrix4Rotate(mat, .pi/2, 1, 0, 0)
+            let mult2 = SCNMatrix4Rotate(mat, .pi/2, 0, 1, 0)
+            let mult = SCNMatrix4Mult(mult2, mult1)
+            node.pivot = mult
+            let scale: Float = 0.00006
+            node.scale = SCNVector3(x: scale, y: scale, z: scale)
+        case 9: //toilet
+            let mult1 = SCNMatrix4Rotate(mat, .pi/2, 1, 0, 0)
+            let mult2 = SCNMatrix4MakeTranslation(0, -20, 0)
+            let mult = SCNMatrix4Mult(mult2, mult1)
+            node.pivot = mult
+            let scale: Float = 0.0007
+            node.scale = SCNVector3(x: scale, y: scale, z: scale)
+        default:
+            return
         }
     }
 
